@@ -1,6 +1,7 @@
 from PyPDF2 import PdfFileReader,PdfFileWriter
 import os
 import cv2
+import pyttsx3
 from tkinter import *
 from tkinter.filedialog import *
 import pytesseract
@@ -9,7 +10,7 @@ from PIL import Image,ImageTk
 from tkinter import font as tkFont
 from tkinter import simpledialog
 
-pytesseract.pytesseract.tesseract_cmd =r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+pytesseract.pytesseract.tesseract_cmd =r"C:\Program Files\Tesseract-OCR\tesseract.exe"    # put your link to tesseract.exe path here.
 
 def Import():
     a = askopenfilename(title="import")
@@ -22,8 +23,18 @@ def Import():
 
     if ext == ".png" or ext == ".jpg":
         img = Image.open(a)
-        txt = pytesseract.image_to_string(img)
+        img_grey = cv2.imread(a, cv2.IMREAD_GRAYSCALE)
+        # defining a threshold, 128 is the middle of black and white in grey scale
+        thresh = 128
+        img_binary = cv2.threshold(img_grey, thresh, 255, cv2.THRESH_BINARY)[1]
+
+        txt = pytesseract.image_to_string(img_binary)
         print(txt)
+        # voice by pyttsx3 .
+        engine = pyttsx3.init()
+        engine.say(txt)
+        engine.runAndWait()
+
         b = f"extracted_txt\{a_name[0]}.txt"
         with open(b, "w") as f:
             f.write(txt)
@@ -77,7 +88,9 @@ def Import():
                 continue
             counter += 1
         print("text : ", txt)
-
+        engine = pyttsx3.init()
+        engine.say(txt[:100])
+        engine.runAndWait()
         # Release all space and windows once done
         cam.release()
         cv2.destroyAllWindows()
@@ -146,6 +159,9 @@ def Picture():
     cv2.destroyAllWindows()
 
     print(txt)
+    engine = pyttsx3.init()
+    engine.say(txt[:100])
+    engine.runAndWait()
     b = f"extracted_txt\{new_name[0]}.txt"
     with open(b, "w") as f:
         f.write(txt)
@@ -230,7 +246,9 @@ def Video():
             # show how many frames are created
         counter += 1
     print("text : ",txt)
-
+    engine = pyttsx3.init()
+    engine.say(txt[:100])
+    engine.runAndWait()
     # Release all space and windows once done
     cam1.release()
     cv2.destroyAllWindows()
@@ -245,19 +263,18 @@ def Video():
 def Take():
     screen1 = Toplevel(screen)
     screen1.geometry("800x800")
-    screen1.iconbitmap(r"C:\Users\Karmveer\Downloads\Hopstarter-Soft-Scraps-Document-Text.ico")
-    img = ImageTk.PhotoImage(Image.open(r"C:\Users\Karmveer\Downloads\doodle.jpg"))
+    screen1.configure(bg="black")
     helv36 = tkFont.Font(family='Helvetica', size=10, weight='bold')
-    Label(screen1, image=img).place(relwidth=1, relheight=1)
-    Label(screen1,text="choose one ").pack()
+    #window icon
+    screen.iconbitmap(r"C:\Users\Karmveer\Downloads\Hopstarter-Soft-Scraps-Document-Text.ico") # put your path to the .ico file
+    #img = ImageTk.PhotoImage(Image.open(r"C:\Users\Karmveer\Downloads\doodle.jpg"))
+    #Label(screen, image=img).place(relwidth=1, relheight=1)
     screen1.title("Take")
-    Label(screen1,text=10*"\n").pack()
-    Button(screen1,text="Picture",bg="grey",height="4",width="45",command=Picture).pack()
-    Label(screen1,text=" Press space bar to take pictures and ESC to exit  ").pack()
-    Label(screen1,text=5*"\n").pack()
-    Button(screen1,text="Video",bg="grey",height="4",width="45",command=Video).pack()
-    Label(screen1,text="Press ESC button to exit from video").pack()
-
+    Label(screen1,text="choose one ",font="times 18 bold", bg="grey12",fg="white").pack()
+    Button(screen1,text="Picture",bg="grey",height="4",width="45",font=helv36,command=Picture).pack()
+    Button(screen1,text="Video",bg="grey",height="4",width="45",font=helv36,command=Video).pack(expand=YES)
+    Label(screen1,text="Tips -- Press ESC button to exit and SPACE to take picture",font="helv36", bg="grey12",
+        fg="white").pack()
 
 
 def main_screen():
@@ -275,9 +292,9 @@ def main_screen():
     # making GUI
     global screen
     screen = Tk()
-    screen.iconbitmap(r"C:\Users\Karmveer\Downloads\Hopstarter-Soft-Scraps-Document-Text.ico")
+    screen.iconbitmap(r"C:\Users\Karmveer\Downloads\Hopstarter-Soft-Scraps-Document-Text.ico") #put your path to the.ico file
     screen.geometry("800x800")
-    img = ImageTk.PhotoImage(Image.open(r"C:\Users\Karmveer\Downloads\doodle.jpg"))
+    img = ImageTk.PhotoImage(Image.open(r"C:\Users\Karmveer\Downloads\doodle.jpg")) # wallpaper path
     helv36 = tkFont.Font(family='Helvetica', size=10, weight='bold')
     Label(screen, image=img).place(relwidth=1, relheight=1)
     screen.title("TEXT SCANNER")
@@ -285,7 +302,7 @@ def main_screen():
     b2 = Button(text="TAKE", bg="grey", height="2", width="30", font=helv36, command=Take).pack()
 
     Label(text="Tip : use SPACE BAR to take picture and ESC to close camera.", font="times 18 bold", bg="grey12",
-        fg="white").pack(expand=YES)
+          fg="white").pack(expand=YES)
     b3 = Button(screen, text="QUIT", bg='grey', height="2", width="30", font=helv36, command=screen.quit).pack(
         expand=YES)
     screen.mainloop()
